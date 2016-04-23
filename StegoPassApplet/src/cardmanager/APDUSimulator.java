@@ -22,7 +22,7 @@ public class APDUSimulator {
             GetPassword(); // 6680
             GenerateNewPassword(); // 6680
             ChangePIN(); // 6680
-            ResetPIN(true); // 
+            ResetPIN(true); // 6986
             
             SendPIN(false); // 6900
             SendPIN(false); // 6900
