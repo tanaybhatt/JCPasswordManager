@@ -29,24 +29,13 @@ public class StegoPassApplet extends javacard.framework.Applet {
     private RandomData m_secureRandom   = null;
     private byte       m_ramArray[]     = null;
     
-    // TO DO: 
-    // This values should be provided when loading the applet into card
-    // by the manufacturer (not hard coded in source).
-    final static byte[] ADMIN_PIN                 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    final static byte   ADMIN_PIN_LENGTH          = (byte) 0x0C;
-    final static byte[] DEFAULT_USER_PIN          = {0x00, 0x00, 0x00, 0x00};
-    final static byte   DEFAULT_USER_PIN_LENGTH   = (byte) 0x04;
-    
     final static byte   RANDOM_DATA_SIZE          = 0x1E;
     
     final static short  SW_BAD_PIN                       = (short) 0x6900;
     final static short  SW_SECURITY_STATUS_NOT_SATISFIED = (short) 0x6680;
     final static short  SW_APPLET_BLOCKED                = (short) 0x6999;
     
-    private boolean pinVerified = false;
     private boolean appletBlocked = false;
-    private short remainingTries = 3;
-    private short remainingAdminTries = 3;  
     
     protected StegoPassApplet(byte[] buffer, short offset, byte length) {
         m_ramArray = JCSystem.makeTransientByteArray((short) 260, JCSystem.CLEAR_ON_DESELECT);
@@ -56,12 +45,12 @@ public class StegoPassApplet extends javacard.framework.Applet {
         byte[] randomBytes = new byte[RANDOM_DATA_SIZE];
         generateSeed(randomBytes, RANDOM_DATA_SIZE);
         m_password.setKey(randomBytes, (byte) 0);
-       
-        m_admin_pin = new OwnerPIN((byte) 5, ADMIN_PIN_LENGTH);
-        m_admin_pin.update(ADMIN_PIN, (byte) 0, ADMIN_PIN_LENGTH);
-        
-        m_user_pin = new OwnerPIN((byte) 5, DEFAULT_USER_PIN_LENGTH);
-        m_user_pin.update(DEFAULT_USER_PIN, (byte) 0, DEFAULT_USER_PIN_LENGTH);       
+           
+        m_admin_pin = new OwnerPIN((byte) 3, buffer[offset + 1]);
+        m_admin_pin.update(buffer, buffer[offset], buffer[offset + 1]);
+
+        m_user_pin = new OwnerPIN((byte) 3, buffer[offset + 3]);
+        m_user_pin.update(buffer, buffer[offset + 2], buffer[offset + 3]);       
     }
     
     public static void install(byte[] bArray, short bOffset, byte bLength) throws ISOException {
@@ -70,7 +59,7 @@ public class StegoPassApplet extends javacard.framework.Applet {
     
     @Override
     public boolean select() {  
-        pinVerified = false;
+        m_user_pin.reset();
         return true;
     }
     
@@ -115,27 +104,22 @@ public class StegoPassApplet extends javacard.framework.Applet {
     
     private void VerifyPIN(APDU apdu) {
         byte[] apdubuf = apdu.getBuffer();
-        short dataLen = apdu.setIncomingAndReceive();
-        
-        remainingTries -= 1;       
+        short dataLen = apdu.setIncomingAndReceive();           
         
         if (m_user_pin.check(apdubuf, ISO7816.OFFSET_CDATA, (byte) dataLen) == false) {
-            if (remainingTries <= 0) {
+            if (m_user_pin.getTriesRemaining() <= 0) {
                 // PIN IS NOW BLOCKED
                 ISOException.throwIt(SW_SECURITY_STATUS_NOT_SATISFIED);
             }
             ISOException.throwIt(SW_BAD_PIN);
-        }
-        
-        pinVerified = true;
-        remainingTries = 3;   
+        }   
     }
     
     private void ChangePIN(APDU apdu) {
         byte[] apdubuf = apdu.getBuffer();
         short dataLen = apdu.setIncomingAndReceive();
 
-        if (!pinVerified) {
+        if (!m_user_pin.isValidated()) {
             ISOException.throwIt(SW_SECURITY_STATUS_NOT_SATISFIED);
         }
         
@@ -147,14 +131,12 @@ public class StegoPassApplet extends javacard.framework.Applet {
         short dataLen = apdu.setIncomingAndReceive();
         
         // RESET PIN NOT AVAILABLE
-        if (remainingTries > 0 ) {
+        if (m_user_pin.getTriesRemaining() > 0 ) {
             ISOException.throwIt(ISO7816.SW_COMMAND_NOT_ALLOWED);
-        }
-        
-        remainingAdminTries -= 1;     
+        }  
          
         if (m_admin_pin.check(apdubuf, ISO7816.OFFSET_CDATA, (byte) dataLen) == false) {           
-            if (remainingAdminTries <= 0 ) {
+            if (m_admin_pin.getTriesRemaining() <= 0 ) {
                 // APPLET IS NOW BLOCKED
                 appletBlocked = true;
                 ISOException.throwIt(SW_APPLET_BLOCKED);
@@ -164,13 +146,13 @@ public class StegoPassApplet extends javacard.framework.Applet {
         
         byte[] resetPIN = {0x00, 0x00, 0x00, 0x00};
         m_user_pin.update(resetPIN, (byte) 0, (byte) 4);
-        remainingTries = 3;
+        m_user_pin.resetAndUnblock();
     }
     
     private void GetPassword(APDU apdu) {   
         byte[] apdubuf = apdu.getBuffer();
         
-        if (!pinVerified) {
+        if (!m_user_pin.isValidated()) {
             ISOException.throwIt(SW_SECURITY_STATUS_NOT_SATISFIED);
         }
         
@@ -180,7 +162,7 @@ public class StegoPassApplet extends javacard.framework.Applet {
     }
     
     private void GenerateNewPassword(APDU apdu) {   
-        if (!pinVerified) {
+        if (!m_user_pin.isValidated()) {
             ISOException.throwIt(SW_SECURITY_STATUS_NOT_SATISFIED);
         }
         

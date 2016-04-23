@@ -1,7 +1,6 @@
 package cardmanager;
 
 import stegopassapplet.StegoPassApplet;
-import java.util.Random;
 
 /**
  *
@@ -14,10 +13,28 @@ public class APDUSimulator {
 
     private static byte APPLET_AID[] = {(byte) 0x4C, (byte) 0x61, (byte) 0x62, (byte) 0x61, (byte) 0x6B,
         (byte) 0x41, (byte) 0x70, (byte) 0x70, (byte) 0x6C, (byte) 0x65, (byte) 0x74};
-
+    
+    private final static byte[] ADMIN_PIN                 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    private final static byte   ADMIN_PIN_LENGTH          = 0x0C;
+    private final static byte   ADMIN_PIN_START           = 0x04;
+    private final static byte[] DEFAULT_USER_PIN          = {0x00, 0x00, 0x00, 0x00};
+    private final static byte   DEFAULT_USER_PIN_LENGTH   = 0x04;
+    private final static byte   DEFAULT_USER_PIN_START    = 0x04 + ADMIN_PIN_LENGTH;
+    
     public static void main(String[] args) {
         try {
-            byte[] installData = new byte[0];
+            
+            // InstalData:
+            // ADMIN_PIN_START | ADMIN_PIN_LENGTH | DEFAULT_USER_PIN_START | DEFAULT_USER_PIN_LENGTH | ADMIN_PIN | DEFAULT_USER_PIN 
+            byte[] installData = new byte[255];
+            installData[0] = ADMIN_PIN_START;
+            installData[1] = ADMIN_PIN_LENGTH;
+            installData[2] = DEFAULT_USER_PIN_START;
+            installData[3] = DEFAULT_USER_PIN_LENGTH;
+            
+            System.arraycopy(ADMIN_PIN, 0, installData, ADMIN_PIN_START, ADMIN_PIN_LENGTH);
+            System.arraycopy(DEFAULT_USER_PIN, 0, installData, DEFAULT_USER_PIN_START, DEFAULT_USER_PIN_LENGTH);
+            
             cardManager.prepareLocalSimulatorApplet(APPLET_AID, installData, StegoPassApplet.class);
             GetPassword(); // 6680
             GenerateNewPassword(); // 6680
@@ -30,7 +47,7 @@ public class APDUSimulator {
 
             ResetPIN(false); // 6900
             ResetPIN(false); // 6900
-            // ResetPIN(false); // 6999 - Blocks applet.
+            //ResetPIN(false); // 6999 - Blocks applet.
             ResetPIN(true); // 9000
             
             SendPIN(true); // 9000
