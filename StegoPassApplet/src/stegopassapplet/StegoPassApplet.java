@@ -25,7 +25,7 @@ public class StegoPassApplet extends javacard.framework.Applet {
     
     private OwnerPIN   m_admin_pin      = null;
     private OwnerPIN   m_user_pin       = null;
-    private DESKey  m_password          = null;
+    private DESKey     m_password       = null;
     private RandomData m_secureRandom   = null;
     private byte       m_ramArray[]     = null;
     
@@ -59,7 +59,6 @@ public class StegoPassApplet extends javacard.framework.Applet {
     
     @Override
     public boolean select() {  
-        m_user_pin.reset();
         return true;
     }
     
