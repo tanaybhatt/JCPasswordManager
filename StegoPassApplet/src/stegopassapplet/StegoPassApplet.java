@@ -122,7 +122,8 @@ public class StegoPassApplet extends javacard.framework.Applet {
             ISOException.throwIt(SW_SECURITY_STATUS_NOT_SATISFIED);
         }
         
-        m_user_pin.update(apdubuf, ISO7816.OFFSET_CDATA, (byte) dataLen);                    
+        m_user_pin.update(apdubuf, ISO7816.OFFSET_CDATA, (byte) dataLen);
+        m_user_pin.check(apdubuf, ISO7816.OFFSET_CDATA, (byte) dataLen);
     }
     
     private void ResetPIN(APDU apdu) {
@@ -172,6 +173,5 @@ public class StegoPassApplet extends javacard.framework.Applet {
     
     private void generateSeed(byte[] randomBytes, byte dataSize) {       
       m_secureRandom.generateData(randomBytes, (byte) 0, dataSize);
-    }
-    
+    }   
 }

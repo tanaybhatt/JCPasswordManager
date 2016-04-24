@@ -1,5 +1,6 @@
 package cardmanager;
 
+import java.util.Base64;
 import stegopassapplet.StegoPassApplet;
 
 /**
@@ -42,19 +43,55 @@ public class APDUSender {
 
     public static ResponseStatus SendPIN(String pin) throws Exception {     
         byte[] pinBytes = numericStringToHex(pin);
-        
-        byte pinApdu[] = new byte[CardMngr.HEADER_LENGTH + pinBytes.length];
-        pinApdu[CardMngr.OFFSET_CLA] = (byte) 0xB0;
-        pinApdu[CardMngr.OFFSET_INS] = (byte) 0x50;
-        pinApdu[CardMngr.OFFSET_P1] = (byte) 0x00;
-        pinApdu[CardMngr.OFFSET_P2] = (byte) 0x00;
-        pinApdu[CardMngr.OFFSET_LC] = (byte) pinBytes.length;
+        byte[] pinApdu = prepareAPDU((byte) 0x50, pinBytes.length);
                      
         System.arraycopy(pinBytes, 0, pinApdu, 5, pinBytes.length);
        
         byte[] response = cardManager.sendAPDUSimulator(pinApdu);
         
         return ResponseStatus.getResponseStatus(response[0], response[1]);
+    }
+    
+    public static ResponseStatus ChangePIN(String pin) throws Exception {
+        byte[] pinBytes = numericStringToHex(pin);
+        byte[] pinApdu = prepareAPDU((byte) 0x51, pinBytes.length);
+                     
+        System.arraycopy(pinBytes, 0, pinApdu, 5, pinBytes.length);
+       
+        byte[] response = cardManager.sendAPDUSimulator(pinApdu);
+        
+        return ResponseStatus.getResponseStatus(response[0], response[1]);
+    }
+    
+    public static ResponseStatus RegeneratePassword() throws Exception {
+        byte[] pinApdu = prepareAPDU((byte) 0x54, 0);
+        
+        byte[] response = cardManager.sendAPDUSimulator(pinApdu);      
+        return ResponseStatus.getResponseStatus(response[0], response[1]);    
+    }
+    
+    public static String getPassword() throws Exception {
+        byte[] pinApdu = prepareAPDU((byte) 0x53, 0);
+        byte[] result = new byte[24];
+        byte[] response = cardManager.sendAPDUSimulator(pinApdu); 
+        
+        if (ResponseStatus.getResponseStatus(response[response.length - 2], response[response.length -1]) == ResponseStatus.SW_OK) {
+            System.arraycopy(response, 0, result, 0, 24);
+            return Base64.getEncoder().encodeToString(result); 
+        }
+        
+        return null;
+    }
+    
+    private static byte[] prepareAPDU(byte instruction, int additionalDataLength){
+        byte pinApdu[] = new byte[CardMngr.HEADER_LENGTH + additionalDataLength];
+        pinApdu[CardMngr.OFFSET_CLA] = (byte) 0xB0;
+        pinApdu[CardMngr.OFFSET_INS] = (byte) instruction;
+        pinApdu[CardMngr.OFFSET_P1] = (byte) 0x00;
+        pinApdu[CardMngr.OFFSET_P2] = (byte) 0x00;
+        pinApdu[CardMngr.OFFSET_LC] = (byte) additionalDataLength;
+        
+        return pinApdu;
     }
 
     private static byte[] numericStringToHex(String pin) {
