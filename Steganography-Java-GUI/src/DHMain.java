@@ -1,13 +1,15 @@
 
-import cardmanager.APDUSender;
-import cardmanager.ResponseStatus;
+import steganography.cardmanager.APDUSender;
+import steganography.cardmanager.APDUSimulatorSender;
+import steganography.cardmanager.ResponseStatus;
 import javax.swing.JOptionPane;
 
 public class DHMain extends javax.swing.JFrame {
 
     public DHMain() {
         try {
-            APDUSender.Initialize();
+            APDUSimulatorSender.Initialize();
+            //APDUSender.Initialize();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error while communicating with card.", "Exception", JOptionPane.PLAIN_MESSAGE);
             System.exit(-1);
@@ -160,7 +162,8 @@ public class DHMain extends javax.swing.JFrame {
             }
 
             try {
-                ResponseStatus result = APDUSender.SendPIN(pin);
+                ResponseStatus result = APDUSimulatorSender.SendPIN(pin);
+                //ResponseStatus result = APDUSender.SendPIN(pin);
                 switch (result) {
                     case SW_OK:
                         inputAccepted = true;
@@ -203,7 +206,8 @@ public class DHMain extends javax.swing.JFrame {
             }
 
             try {
-                ResponseStatus result = APDUSender.ChangePIN(pin);
+                ResponseStatus result = APDUSimulatorSender.ChangePIN(pin);
+                //ResponseStatus result = APDUSender.ChangePIN(pin);
                 switch (result) {
                     case SW_OK:
                         inputAccepted = true;
@@ -225,7 +229,8 @@ public class DHMain extends javax.swing.JFrame {
         int n = JOptionPane.showConfirmDialog(this, "Are you sure? You won't be able to extract files hidden in the past.", "Warning!", JOptionPane.YES_NO_OPTION);
         if (n == JOptionPane.YES_OPTION) {
             try {
-                ResponseStatus result = APDUSender.RegeneratePassword();
+                ResponseStatus result = APDUSimulatorSender.RegeneratePassword();
+                //ResponseStatus result = APDUSender.RegeneratePassword();
                 switch (result) {
                     case SW_OK:
                         JOptionPane.showMessageDialog(this, "New key was successfully generated.", "Information", JOptionPane.PLAIN_MESSAGE);

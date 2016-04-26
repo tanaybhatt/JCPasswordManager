@@ -1,4 +1,4 @@
-package cardmanager;
+package steganography.cardmanager;
 
 import java.util.Base64;
 import stegopassapplet.StegoPassApplet;
@@ -7,10 +7,8 @@ import stegopassapplet.StegoPassApplet;
  *
  * @author Martin Bajanik
  */
-public class APDUSender {
-
+public class APDUSimulatorSender {
     static CardMngr cardManager = new CardMngr();
-    static short additionalDataLen = 4;
 
     private static byte APPLET_AID[] = {(byte) 0x4C, (byte) 0x61, (byte) 0x62, (byte) 0x61, (byte) 0x6B,
         (byte) 0x41, (byte) 0x70, (byte) 0x70, (byte) 0x6C, (byte) 0x65, (byte) 0x74};
@@ -64,16 +62,16 @@ public class APDUSender {
     }
     
     public static ResponseStatus RegeneratePassword() throws Exception {
-        byte[] pinApdu = prepareAPDU((byte) 0x54, 0);
+        byte[] apdu = prepareAPDU((byte) 0x54, 0);
         
-        byte[] response = cardManager.sendAPDUSimulator(pinApdu);      
+        byte[] response = cardManager.sendAPDUSimulator(apdu);      
         return ResponseStatus.getResponseStatus(response[0], response[1]);    
     }
     
     public static String getPassword() throws Exception {
-        byte[] pinApdu = prepareAPDU((byte) 0x53, 0);
+        byte[] apdu = prepareAPDU((byte) 0x53, 0);
         byte[] result = new byte[24];
-        byte[] response = cardManager.sendAPDUSimulator(pinApdu); 
+        byte[] response = cardManager.sendAPDUSimulator(apdu); 
         
         if (ResponseStatus.getResponseStatus(response[response.length - 2], response[response.length -1]) == ResponseStatus.SW_OK) {
             System.arraycopy(response, 0, result, 0, 24);
