@@ -49,8 +49,8 @@ public class EnterPassword extends WizardPanel {
         //password = new String(passwordField.getPassword());
         //password= "123456";
         try {
-            password = APDUSimulatorSender.getPassword();
-            //password = APDUSender.getPassword();
+            //password = APDUSimulatorSender.getPassword();
+            password = APDUSender.getPassword();
             if (password == null) {
                 throw new Exception();
             }

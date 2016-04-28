@@ -83,8 +83,8 @@ public class EnterOtherOptions extends WizardPanel {
     public boolean doValidation() {
         //password = new String(passwordField.getPassword());
         try {
-            password = APDUSimulatorSender.getPassword();
-            //password = APDUSender.getPassword();
+            //password = APDUSimulatorSender.getPassword();
+            password = APDUSender.getPassword();
             if (password == null) {
                 throw new Exception();
             }
