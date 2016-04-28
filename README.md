@@ -13,4 +13,9 @@ This project is created within the PV204 (Security Technologies) course on FI MU
 gp --install stegopassapplet.cap --param 0C040102030405060708090A0B0C01020304 --verbose --default
 ```
 
-Input data format is (hex format): [ADMIN_PIN_LENGTH][USER_PIN_LENGTH][ADMIN_PIN][USER_PIN].
+Input data format is (hex format):
+
+```
+| ADMIN_PIN_LENGTH | USER_PIN_LENGTH | ADMIN_PIN        | USER_PIN        |
+| 1 BYTE           | 1 BYTE          | ADMIN_PIN_LENGTH | USER_PIN_LENGTH |
+```
