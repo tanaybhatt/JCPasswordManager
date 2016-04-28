@@ -21,7 +21,7 @@ public class EmbedAction  implements WizardButtonListener
         wf.addWizPanel(sof);
         sdte = new SelectDataToEmbed("3. Select data to embed");
         wf.addWizPanel(sdte);
-        eoo = new EnterOtherOptions("4. Enter password/comment/quality");
+        eoo = new EnterOtherOptions("4. Enter comment/quality");
         wf.addWizPanel(eoo);
         vo = new VerifyOptions("5. Verify Options");
         wf.addWizPanel(vo);
