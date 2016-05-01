@@ -1,9 +1,6 @@
 package steganography.cardmanager;
 
-import com.licel.jcardsim.io.CAD;
-import com.licel.jcardsim.io.JavaxSmartCardInterface;
 import java.util.List;
-import javacard.framework.AID;
 import javax.smartcardio.ATR;
 import javax.smartcardio.Card;
 import javax.smartcardio.CardChannel;
@@ -17,10 +14,6 @@ public class CardMngr {
     CardTerminal m_terminal = null;
     CardChannel m_channel = null;
     Card m_card = null;
-
-    // Simulator related attributes
-    private static CAD m_cad = null;
-    private static JavaxSmartCardInterface m_simulator = null;
 
     public static final byte OFFSET_CLA = 0x00;
     public static final byte OFFSET_INS = 0x01;
@@ -102,30 +95,7 @@ public class CardMngr {
 
         return (responseAPDU);
     }
-
-    public boolean prepareLocalSimulatorApplet(byte[] appletAIDArray, byte[] installData, Class appletClass) {
-        System.setProperty("com.licel.jcardsim.terminal.type", "2");
-        m_cad = new CAD(System.getProperties());
-        m_simulator = (JavaxSmartCardInterface) m_cad.getCardInterface();
-        AID appletAID = new AID(appletAIDArray, (short) 0, (byte) appletAIDArray.length);
-
-        AID appletAIDRes = m_simulator.installApplet(appletAID, appletClass, installData, (short) 0, (byte) installData.length);
-        return m_simulator.selectApplet(appletAID);
-
-    }
-
-    public byte[] sendAPDUSimulator(byte apdu[]) throws Exception {
-        System.out.println(">>>>");
-        System.out.println(bytesToHex(apdu));
-
-        byte[] responseBytes = m_simulator.transmitCommand(apdu);
-
-        System.out.println(bytesToHex(responseBytes));
-        System.out.println("<<<<");
-
-        return responseBytes;
-    }
-
+    
     private String bytesToHex(byte[] data) {
         StringBuilder buf = new StringBuilder();
         for (int i = 0; i < data.length; i++) {

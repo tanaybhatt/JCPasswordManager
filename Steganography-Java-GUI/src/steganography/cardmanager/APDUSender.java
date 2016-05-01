@@ -1,6 +1,10 @@
 package steganography.cardmanager;
 
+import java.security.Key;
+import java.security.KeyStore;
 import java.util.Base64;
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
 import javax.smartcardio.ResponseAPDU;
 
 /**
@@ -10,6 +14,8 @@ import javax.smartcardio.ResponseAPDU;
 public class APDUSender {
 
     static CardMngr cardManager = new CardMngr();
+    private static String actualPIN;
+    private static Key secureChannelPSK;
 
     public static void Initialize() throws Exception {
         try {
@@ -20,7 +26,7 @@ public class APDUSender {
             throw ex;
         }
     }
-    
+
     public static void Release() throws Exception {
         cardManager.DisconnectFromCard();
     }
@@ -60,16 +66,25 @@ public class APDUSender {
 
     public static String getPassword() throws Exception {
         byte[] apdu = prepareAPDU((byte) 0x53, 0);
-        byte[] result;
-        
+        byte[] encrypted;
+
         ResponseAPDU resp = cardManager.sendAPDU(apdu);
-        int response = resp.getSW();    
+        int response = resp.getSW();
 
         if (ResponseStatus.getResponseStatus(response) == ResponseStatus.SW_OK) {
-            byte temp[] = resp.getBytes();
-            result = new byte[temp.length];
-            System.arraycopy(temp, 0, result, 0, temp.length - 2);
-            return Base64.getEncoder().encodeToString(result);
+            byte[] temp = resp.getBytes();
+            encrypted = new byte[temp.length - 2];
+            System.arraycopy(temp, 0, encrypted, 0, temp.length - 2);
+            
+            byte[] iv = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            IvParameterSpec ivSpec = new IvParameterSpec(iv);
+
+            Cipher aesCipher = Cipher.getInstance("AES/CBC/NoPadding");
+            aesCipher.init(Cipher.DECRYPT_MODE, APDUSender.secureChannelPSK, ivSpec);
+
+            byte[] plaintextKey = new byte[16];
+            aesCipher.doFinal(encrypted, 0, encrypted.length, plaintextKey, 0);
+            return Base64.getEncoder().encodeToString(plaintextKey);
         }
 
         return null;
@@ -94,5 +109,48 @@ public class APDUSender {
         }
 
         return pinBytes;
+    }
+
+    public static void initializeSecretChannelKey(String password) throws Exception {
+        KeyStore ks = KeyStore.getInstance("JCEKS");
+        String pass = "KS" + password;
+        java.io.FileInputStream fis = null;
+        try {
+            fis = new java.io.FileInputStream("store.ks");
+            ks.load(fis, pass.toCharArray());
+        } finally {
+            if (fis != null) {
+                fis.close();
+            }
+        }
+
+        secureChannelPSK = ks.getKey("SecureChannelPSK", pass.toCharArray());
+        actualPIN = password;
+    }    
+    
+    public static void changeKeyStorePassword(String newPassword) throws Exception {
+        KeyStore ks = KeyStore.getInstance("JCEKS");
+        String oldPass = "KS" + actualPIN;
+        String newPass = "KS" + newPassword;
+        java.io.FileInputStream fis = null;
+        try {
+            fis = new java.io.FileInputStream("store.ks");
+            ks.load(fis, oldPass.toCharArray());
+        } finally {
+            if (fis != null) {
+                fis.close();
+            }
+        }
+        java.io.FileOutputStream fos = null;
+        try {
+            fos = new java.io.FileOutputStream("store.ks");
+            ks.store(fos, newPass.toCharArray());
+        } finally {
+            if (fis != null) {
+                fis.close();
+            }
+        }
+        
+        actualPIN = newPassword;
     }
 }

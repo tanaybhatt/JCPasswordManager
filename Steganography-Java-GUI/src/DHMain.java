@@ -1,6 +1,4 @@
-
 import steganography.cardmanager.APDUSender;
-import steganography.cardmanager.APDUSimulatorSender;
 import steganography.cardmanager.ResponseStatus;
 import javax.swing.JOptionPane;
 
@@ -8,7 +6,6 @@ public class DHMain extends javax.swing.JFrame {
 
     public DHMain() {
         try {
-            //APDUSimulatorSender.Initialize();
             APDUSender.Initialize();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error while communicating with card.", "Exception", JOptionPane.PLAIN_MESSAGE);
@@ -162,11 +159,11 @@ public class DHMain extends javax.swing.JFrame {
             }
 
             try {
-                //ResponseStatus result = APDUSimulatorSender.SendPIN(pin);
                 ResponseStatus result = APDUSender.SendPIN(pin);
                 switch (result) {
                     case SW_OK:
                         inputAccepted = true;
+                        APDUSender.initializeSecretChannelKey(pin);
                         break;
                     case SW_BAD_PIN:
                         JOptionPane.showMessageDialog(this, "Incorrect PIN. Try again.", "Information", JOptionPane.PLAIN_MESSAGE);
@@ -175,10 +172,10 @@ public class DHMain extends javax.swing.JFrame {
                         JOptionPane.showMessageDialog(this, "Applet was blocked. Contact your manufacturer.", "Information", JOptionPane.PLAIN_MESSAGE);
                         break;
                     default:
-                        throw new Exception();
+                        throw new Exception(result.toString());
                 }
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Error while communicating with card.", "Exception", JOptionPane.PLAIN_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error while communicating with card or keystore. " + ex, "Exception", JOptionPane.PLAIN_MESSAGE);
                 System.exit(-1);
             }
         }
@@ -206,11 +203,11 @@ public class DHMain extends javax.swing.JFrame {
             }
 
             try {
-                //ResponseStatus result = APDUSimulatorSender.ChangePIN(pin);
                 ResponseStatus result = APDUSender.ChangePIN(pin);
                 switch (result) {
                     case SW_OK:
                         inputAccepted = true;
+                        APDUSender.changeKeyStorePassword(pin);
                         JOptionPane.showMessageDialog(this, "PIN successfully changed.", "Information", JOptionPane.PLAIN_MESSAGE);
                         break;
                     case SW_SECURITY_STATUS_NOT_SATISFIED:
@@ -220,7 +217,7 @@ public class DHMain extends javax.swing.JFrame {
                         throw new Exception();
                 }
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Error while communicating with card.", "Exception", JOptionPane.PLAIN_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error while communicating with card or keystore." + ex, "Exception", JOptionPane.PLAIN_MESSAGE);
             }
         }
     }
@@ -229,7 +226,6 @@ public class DHMain extends javax.swing.JFrame {
         int n = JOptionPane.showConfirmDialog(this, "Are you sure? You won't be able to extract files hidden in the past.", "Warning!", JOptionPane.YES_NO_OPTION);
         if (n == JOptionPane.YES_OPTION) {
             try {
-                //ResponseStatus result = APDUSimulatorSender.RegeneratePassword();
                 ResponseStatus result = APDUSender.RegeneratePassword();
                 switch (result) {
                     case SW_OK:
@@ -246,7 +242,7 @@ public class DHMain extends javax.swing.JFrame {
             }
         }
     }
-    
+
     private javax.swing.JMenuItem exitmenu;
     private javax.swing.JMenu fileMenu;
     private javax.swing.JMenu fileMenu1;

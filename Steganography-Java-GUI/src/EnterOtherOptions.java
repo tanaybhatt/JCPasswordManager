@@ -1,5 +1,4 @@
 import steganography.cardmanager.APDUSender;
-import steganography.cardmanager.APDUSimulatorSender;
 import javax.swing.JOptionPane;
 
 /*
@@ -83,7 +82,6 @@ public class EnterOtherOptions extends WizardPanel {
     public boolean doValidation() {
         //password = new String(passwordField.getPassword());
         try {
-            //password = APDUSimulatorSender.getPassword();
             password = APDUSender.getPassword();
             if (password == null) {
                 throw new Exception();

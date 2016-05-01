@@ -50,4 +50,10 @@ public enum ResponseStatus {
             default: return SW_UNKNOWN;
         }
     }
+    
+    @Override
+    public String toString()
+    {
+       return String.format("%d%d (%d)", this.first, this.second, this.value);
+    }
 }
