@@ -10,12 +10,20 @@ This project is created within the PV204 (Security Technologies) course on FI MU
 # Installation
 
 ```
-gp --install stegopassapplet.cap --param 0C040102030405060708090A0B0C01020304 --verbose --default
+gp.exe --install stegopassapplet.cap --param 0C041000000000000000000000000000000000FC065A4ABA57A1C29BBB107D5FE6DE32 --verbose --debug --default
 ```
 
-Input data format is (hex format):
+Installation data format is (hex format):
 
 ```
-| ADMIN_PIN_LENGTH | USER_PIN_LENGTH | ADMIN_PIN        | USER_PIN        |
-| 1 BYTE           | 1 BYTE          | ADMIN_PIN_LENGTH | USER_PIN_LENGTH |
+| ADMIN_PIN_LENGTH | USER_PIN_LENGTH | AES_KEY_LENGTH | ADMIN_PIN        | USER_PIN        | AES_KEY
+| 1 BYTE           | 1 BYTE          | 1 BYTE         | ADMIN_PIN_LENGTH | USER_PIN_LENGTH | AES_KEY
 ```
+
+The Stego application is looking for the pre-shared key in a KeyStore "store.ks" in the root folder. A store can be easily generated using the keytool:
+
+```
+keytool.exe -genseckey -alias SecureChannelPSK -keyalg AES -keysize 128 -storepass KS0000 -storetype JCEKS -keystore store.ksY
+```
+
+***Note*** that store password (and key password within store) has to be "KSXXXX" where XXXX is the default PIN used in the applet installation parameters. In case the end user is chaning his PIN, the KeyStore PIN is changed accordinglly automaticaly. 
