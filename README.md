@@ -23,7 +23,7 @@ Installation data format is (hex format):
 The Stego application is looking for the pre-shared key in a KeyStore "store.ks" in the root folder. A store can be easily generated using the keytool:
 
 ```
-keytool.exe -genseckey -alias SecureChannelPSK -keyalg AES -keysize 128 -storepass KS0000 -storetype JCEKS -keystore store.ksY
+keytool.exe -genseckey -alias SecureChannelPSK -keyalg AES -keysize 128 -storepass KS0000 -storetype JCEKS -keystore store.ks
 ```
 
 ***Note*** that store password (and key password within store) has to be "KSXXXX" where XXXX is the default PIN used in the applet installation parameters. In case the end user is chaning his PIN, the KeyStore PIN is changed accordinglly automaticaly. 
