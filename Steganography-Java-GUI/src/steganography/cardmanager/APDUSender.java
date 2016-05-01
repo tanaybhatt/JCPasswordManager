@@ -2,6 +2,8 @@ package steganography.cardmanager;
 
 import java.security.Key;
 import java.security.KeyStore;
+import java.security.KeyStore.Entry;
+import java.security.KeyStore.ProtectionParameter;
 import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -82,8 +84,7 @@ public class APDUSender {
             Cipher aesCipher = Cipher.getInstance("AES/CBC/NoPadding");
             aesCipher.init(Cipher.DECRYPT_MODE, APDUSender.secureChannelPSK, ivSpec);
 
-            byte[] plaintextKey = new byte[16];
-            aesCipher.doFinal(encrypted, 0, encrypted.length, plaintextKey, 0);
+            byte[] plaintextKey = aesCipher.doFinal(encrypted);
             return Base64.getEncoder().encodeToString(plaintextKey);
         }
 
@@ -140,7 +141,13 @@ public class APDUSender {
             if (fis != null) {
                 fis.close();
             }
-        }
+        }       
+        
+        ProtectionParameter oldParam = new KeyStore.PasswordProtection(oldPass.toCharArray());    
+        Entry keyEntry = ks.getEntry("SecureChannelPSK", oldParam);
+        ProtectionParameter newParam = new KeyStore.PasswordProtection(newPass.toCharArray());
+        ks.setEntry("SecureChannelPSK", keyEntry, newParam);
+        
         java.io.FileOutputStream fos = null;
         try {
             fos = new java.io.FileOutputStream("store.ks");
