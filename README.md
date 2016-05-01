@@ -26,4 +26,6 @@ The Stego application is looking for the pre-shared key in a KeyStore "store.ks"
 keytool.exe -genseckey -alias SecureChannelPSK -keyalg AES -keysize 128 -storepass KS0000 -storetype JCEKS -keystore store.ks
 ```
 
-***Note*** that store password (and key password within store) has to be "KSXXXX" where XXXX is the default PIN used in the applet installation parameters. In case the end user is chaning his PIN, the KeyStore PIN is changed accordinglly automaticaly. 
+***Note 1:*** Store password (and key password within store) has to be "KSXXXX" where XXXX is the default PIN used in the applet installation parameters. In case the end user is chaning his PIN, the KeyStore PIN is changed accordinglly automaticaly. 
+
+***Note 2:*** You can use KeyExtractor to get the key from the generated store in HEX format (so you can use it in the installation data). 
